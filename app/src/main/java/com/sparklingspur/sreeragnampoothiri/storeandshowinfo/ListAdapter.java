@@ -68,7 +68,7 @@ public class ListAdapter extends ArrayAdapter<Contact>{
         notifyDataSetChanged();
     }
 
-    public List<Contact> getWorldPopulation() {
+    public List<Contact> getContacts() {
         return contactList;
     }
 
