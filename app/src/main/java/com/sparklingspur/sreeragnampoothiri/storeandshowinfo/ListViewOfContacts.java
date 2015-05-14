@@ -128,6 +128,7 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                 // for this the class should implement serializable
                 showSelectedContact.putExtra("SelectedPerson", clickedContact);
                 startActivity(showSelectedContact);
+                view.setSelected(true);
             }
         });
 
@@ -137,6 +138,8 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                 if (mActionMode != null) {
                     return false;
                 }
+
+
                 selectedItem = position;
                 personDlt = listView.getItemAtPosition(position);
                 Contact addPersonDlt = (Contact)personDlt;
