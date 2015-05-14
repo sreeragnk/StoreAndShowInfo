@@ -1,15 +1,13 @@
 package com.sparklingspur.sreeragnampoothiri.storeandshowinfo;
 
 import android.content.Context;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,34 +16,87 @@ import java.util.List;
 public class ListAdapter extends ArrayAdapter<Contact>{
 
 
-    public ListAdapter(Context context, List<Contact> items) {
-        super(context, 0, items);
+    Context context;
+    LayoutInflater inflater;
+    List<Contact> contactList;
+    private SparseBooleanArray mSelectedItemsIds;
+    public ListAdapter(Context context,int resourceId, List<Contact> contactList) {
+        super(context, resourceId, contactList);
+        mSelectedItemsIds = new SparseBooleanArray();
+        this.context = context;
+        this.contactList = contactList;
+        inflater = LayoutInflater.from(context);
+    }
+
+    private class ViewHolder {
+        TextView showName;
+        TextView showPhone;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View view, ViewGroup parent) {
+        final ViewHolder holder;
 
         // Get the data item for this position
-        Contact contact = getItem(position);
+        //Contact contact = getItem(position);
 
         // Check if an existing view is being reused, otherwise inflate the view
-        if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.contact_view,parent,false);
+        if (view == null) {
+            holder = new ViewHolder();
+            view = inflater.inflate(R.layout.contact_view_item, null);
+
+            //Locate the Textviews in Contact_view_item.xml
+            holder.showName = (TextView) view.findViewById(R.id.showName);
+            holder.showPhone = (TextView)view.findViewById(R.id.showPhone);
+
+            view.setTag(holder);
+        } else {
+            holder = (ViewHolder) view.getTag();
         }
 
-        // Lookup view for data population
-        TextView inflateName = (TextView) convertView.findViewById(R.id.showName);
-        TextView inflatePhone = (TextView) convertView.findViewById(R.id.showPhone);
+        //Capture position and set to the Textviews
+        holder.showName.setText(contactList.get(position).getName());
+        holder.showPhone.setText(contactList.get(position).getPhoneNumber());
 
-        // Populate the data into the template view using the data object
-        inflateName.setText(contact.getName().toString());
-        inflatePhone.setText(contact.getPhoneNumber().toString());
+        return view;
 
-        // Return the completed view to render on screen
+    }
 
+    @Override
+    public void remove(Contact object) {
+        contactList.remove(object);
+        notifyDataSetChanged();
+    }
 
-        return convertView;
-        }
+    public List<Contact> getWorldPopulation() {
+        return contactList;
+    }
+
+    public void toggleSelection(int position) {
+        selectView(position, !mSelectedItemsIds.get(position));
+    }
+
+    public void removeSelection() {
+        mSelectedItemsIds = new SparseBooleanArray();
+        notifyDataSetChanged();
+    }
+
+    public void selectView(int position, boolean value) {
+        if (value)
+            mSelectedItemsIds.put(position, value);
+        else
+            mSelectedItemsIds.delete(position);
+        notifyDataSetChanged();
+    }
+
+    public int getSelectedCount() {
+        return mSelectedItemsIds.size();
+    }
+
+    public SparseBooleanArray getSelectedIds() {
+        return mSelectedItemsIds;
+    }
+
 
     }
 

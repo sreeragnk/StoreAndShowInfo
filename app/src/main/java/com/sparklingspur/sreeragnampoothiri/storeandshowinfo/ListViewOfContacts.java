@@ -1,27 +1,25 @@
 package com.sparklingspur.sreeragnampoothiri.storeandshowinfo;
 
 import android.app.Activity;
-import android.app.ListActivity;
-import android.app.ListFragment;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.ArrayRes;
+import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 
 /**
  * Created by sreerag.nampoothiri on 11-May-15.
@@ -30,38 +28,94 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
 
     protected Object mActionMode;
     public Object personDlt;
+    List<Contact> dltPersonsList = new ArrayList<>();
 
+    ListAdapter listAdapter;
     public int selectedItem = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.show_contacts_list);
+        setContentView(R.layout.show_contacts_listview);
         final ListView listView = (ListView) findViewById(R.id.listview);
 
         DatabaseHandler db = new DatabaseHandler(getApplicationContext());
         List<Contact> contactList = db.getAllContacts();
+        listAdapter = new ListAdapter(this, R.layout.contact_view_item,contactList);
+        listView.setAdapter(listAdapter);
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
 
-       /* Button goBackBtn = (Button) findViewById(R.id.goBackBtn);
-
-        goBackBtn.setOnClickListener(new View.OnClickListener() {
+        listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
-            public void onClick(View v) {
-                finish();
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+                // Capture total checked items
+                final int checkedCount = listView.getCheckedItemCount();
+
+                // Set the CAB title according to total checked items
+                mode.setTitle(checkedCount + " Selected");
+                personDlt = listView.getItemAtPosition(position);
+                if(checked) {
+
+                    Contact prsntoArray = (Contact) personDlt;
+                    dltPersonsList.add(prsntoArray);
+                }
+                else {
+                    dltPersonsList.remove(personDlt);
+                }
+                // Calls toggleSelection method from ListViewAdapter Class
+                listAdapter.toggleSelection(position);
             }
-        });*/
 
-        Context context = getApplicationContext();
-       /* ArrayAdapter<Contact> adapter = new ArrayAdapter<Contact>(this,R.layout.contact_view,R.id.showContactInsideListview,contactList);
-        listView.setAdapter(adapter);*/
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                mode.getMenuInflater().inflate(R.menu.menu_main, menu);
+                return true;
+            }
 
-        ListAdapter customAdapter = new ListAdapter(context,contactList);
-        listView.setAdapter(customAdapter);
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
 
-       /* ListIterator<Contact> listIterator = contactList.listIterator();
-        while(listIterator.hasNext()){
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.delete:
+                        SparseBooleanArray selected = listAdapter.getSelectedIds();
+                        for (int i = (selected.size() - 1); i >= 0; i--) {
+                            if (selected.valueAt(i)) {
+                                Contact selecteditem = listAdapter
+                                        .getItem(selected.keyAt(i));
+                                // Remove selected items following the ids
+                                listAdapter.remove(selecteditem);
+                            }
+                        }
+                        Iterator<Contact> dltIter = dltPersonsList.iterator();
+                        do{
 
-        }*/
+                            Contact dltContct = dltIter.next();
+                            DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+                            db.deleteContact(dltContct);
+
+                        }while(dltIter.hasNext());
+
+
+                        // Close CAB
+                        mode.finish();
+                        return true;
+                    default:
+                        return false;
+                }
+
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                listAdapter.removeSelection();
+
+            }
+        });
+
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -85,8 +139,8 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                 }
                 selectedItem = position;
                 personDlt = listView.getItemAtPosition(position);
-
-
+                Contact addPersonDlt = (Contact)personDlt;
+                dltPersonsList.add(addPersonDlt);
 
                 mActionMode = ListViewOfContacts.this.startActionMode(ListViewOfContacts.this);
                 view.setSelected(true);
@@ -104,10 +158,10 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         // Inflate a menu resource providing context menu items
-        MenuInflater inflater = mode.getMenuInflater();
+        /*MenuInflater inflater = mode.getMenuInflater();
         // Assumes that you have "contexual.xml" menu resources
-        inflater.inflate(R.menu.menu_main, menu);
-        return true;
+        inflater.inflate(R.menu.menu_main, menu);*/
+        return false;
     }
 
     // Called each time the action mode is shown. Always called after
@@ -122,7 +176,7 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_delete:
+        /*    case R.id.action_delete:
                 show();
                 Contact dltContct = (Contact)personDlt;
                 DatabaseHandler db = new DatabaseHandler(getApplicationContext());
@@ -134,7 +188,7 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                 mode.finish();
                 Intent intent = new Intent(getApplicationContext(),MainActivity.class);
                 startActivity(intent);
-                return true;
+                return true;*/
             default:
                 return false;
         }
