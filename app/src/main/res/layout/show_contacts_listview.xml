@@ -10,7 +10,6 @@
         android:id="@+id/listview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_key"
         xmlns:android="http://schemas.android.com/apk/res/android">
     </ListView>
     

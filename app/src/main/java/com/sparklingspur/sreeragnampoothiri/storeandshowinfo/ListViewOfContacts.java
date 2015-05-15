@@ -2,6 +2,7 @@ package com.sparklingspur.sreeragnampoothiri.storeandshowinfo;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.ArrayRes;
 import android.util.SparseBooleanArray;
@@ -55,12 +56,14 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                 mode.setTitle(checkedCount + " Selected");
                 personDlt = listView.getItemAtPosition(position);
                 if(checked) {
-
+                    listView.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.darkblue));
                     Contact prsntoArray = (Contact) personDlt;
                     dltPersonsList.add(prsntoArray);
                 }
                 else {
+                    listView.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.abc_background_cache_hint_selector_material_light));
                     dltPersonsList.remove(personDlt);
+
                 }
                 // Calls toggleSelection method from ListViewAdapter Class
                 listAdapter.toggleSelection(position);
@@ -139,10 +142,9 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
                     return false;
                 }
 
-
                 selectedItem = position;
                 personDlt = listView.getItemAtPosition(position);
-                Contact addPersonDlt = (Contact)personDlt;
+                Contact addPersonDlt = (Contact) personDlt;
                 dltPersonsList.add(addPersonDlt);
 
                 mActionMode = ListViewOfContacts.this.startActionMode(ListViewOfContacts.this);
@@ -153,9 +155,9 @@ public class ListViewOfContacts extends Activity implements ActionMode.Callback 
 
     }
 
-    private void show(){
+    /*private void show(){
         Toast.makeText(ListViewOfContacts.this, String.valueOf(selectedItem), Toast.LENGTH_LONG).show();
-    }
+    }*/
 
     // Called when the action mode is created; startActionMode() was called
     @Override

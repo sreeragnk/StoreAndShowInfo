@@ -12,5 +12,9 @@
     <color name="darkred">#FFCC0000</color>
     <color name="pressed_color">#4d90fe</color>
     <color name="default_color">#ffffff</color>
+    <color name="background">#A0A0A0</color>
+    <color name="listitem_default_color">#A0A0A0</color>
+    <color name="listitem_pressed_color">#FFFFFF</color>
+    <color name="listitem_focused_color">#FFFFFF</color>
 
 </resources>
