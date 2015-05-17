@@ -1,7 +1,16 @@
 package com.sparklingspur.sreeragnampoothiri.storeandshowinfo;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -13,10 +22,22 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends Activity {
+
+    final int REQUEST_CAMERA = 1888;
+    final int SELECT_FILE = 1213;
+    private Bitmap contactImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +54,7 @@ public class MainActivity extends ActionBarActivity {
         final DatabaseHandler db = new DatabaseHandler(this);
         final Context context = getApplicationContext();
 
+        final Button addPhoto = (Button)findViewById(R.id.btnSelectPhoto);
         name.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -61,12 +83,10 @@ public class MainActivity extends ActionBarActivity {
                 contact.setPhoneNumber(phoneNumber.getText().toString());
 
                 personAlreadyExists = db.checkContact(contact);
-                if(personAlreadyExists){
-                    Toast toast = Toast.makeText(context,"Person Already Exist", Toast.LENGTH_SHORT);
+                if (personAlreadyExists) {
+                    Toast toast = Toast.makeText(context, "Person Already Exist", Toast.LENGTH_SHORT);
                     toast.show();
-                }
-
-                else {
+                } else {
 
                     //Add to Database
                     db.addContact(new Contact(name.getText().toString(), phoneNumber.getText().toString()));
@@ -82,6 +102,13 @@ public class MainActivity extends ActionBarActivity {
                 System.out.println("Button Clicked");
                 Intent i = new Intent(context, ListViewOfContacts.class);
                 startActivity(i);
+            }
+        });
+
+        addPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImage();
             }
         });
 
@@ -105,5 +132,84 @@ public class MainActivity extends ActionBarActivity {
         return true;
     }
 
+    private void selectImage(){
+
+
+
+        final CharSequence[] items = {"Take Photo", "Choose From Gallery", "Cancel"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle("Add Photo");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (items[which].equals("Take Photo")) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(intent, REQUEST_CAMERA);
+                } else if (items[which].equals("Choose From Gallery")) {
+                    Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    intent.setType("image/*");
+                    startActivityForResult(Intent.createChooser(intent, "Select File"), SELECT_FILE);
+                } else if (items[which].equals("Cancel")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        ImageView imageView = (ImageView) findViewById(R.id.ivImage);
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == RESULT_OK){
+            if(requestCode == REQUEST_CAMERA){
+                contactImage = (Bitmap)data.getExtras().get("data");
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                contactImage.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+
+                File destination = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis() + ".jpg");
+                FileOutputStream fo;
+
+                try{
+                    destination.createNewFile();
+                    fo = new FileOutputStream(destination);
+
+                }catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+                imageView.setImageBitmap(contactImage);
+            }
+        else if(requestCode == SELECT_FILE){
+                Uri selectedImageUri = data.getData();
+                String[] projection = {MediaStore.MediaColumns.DATA};
+                Cursor cursor = managedQuery(selectedImageUri, projection, null, null,
+                        null);
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+                cursor.moveToFirst();
+
+                String selectedImagePath = cursor.getString(column_index);
+
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(selectedImagePath, options);
+                final int REQUIRED_SIZE = 200;
+                int scale = 1;
+                while (options.outWidth / scale / 2 >= REQUIRED_SIZE
+                        && options.outHeight / scale / 2 >= REQUIRED_SIZE)
+                    scale *= 2;
+                options.inSampleSize = scale;
+                options.inJustDecodeBounds = false;
+                contactImage = BitmapFactory.decodeFile(selectedImagePath, options);
+
+                imageView.setImageBitmap(contactImage);
+            }
+
+        }
+    }
 
 }
