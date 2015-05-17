@@ -1,13 +1,19 @@
 package com.sparklingspur.sreeragnampoothiri.storeandshowinfo;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 /**
@@ -31,6 +37,7 @@ public class ListAdapter extends ArrayAdapter<Contact>{
     private class ViewHolder {
         TextView showName;
         TextView showPhone;
+        ImageView showImage;
     }
 
     @Override
@@ -48,16 +55,29 @@ public class ListAdapter extends ArrayAdapter<Contact>{
             //Locate the Textviews in Contact_view_item.xml
             holder.showName = (TextView) view.findViewById(R.id.showName);
             holder.showPhone = (TextView)view.findViewById(R.id.showPhone);
+            holder.showImage = (ImageView)view.findViewById(R.id.showImage);
 
             view.setTag(holder);
         } else {
             holder = (ViewHolder) view.getTag();
         }
 
+        //Convert Byte to Bitmap
+
+        try
+        {
+            byte[] outImage=contactList.get(position).getImage();
+            ByteArrayInputStream imageStream = new ByteArrayInputStream(outImage);
+            Bitmap theImage = BitmapFactory.decodeStream(imageStream);
+            holder.showImage.setImageBitmap(theImage);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+        }
+
+
         //Capture position and set to the Textviews
         holder.showName.setText(contactList.get(position).getName());
         holder.showPhone.setText(contactList.get(position).getPhoneNumber());
-
         return view;
 
     }

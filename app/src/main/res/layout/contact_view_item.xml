@@ -19,5 +19,8 @@ android:divider="@color/orange"
         android:fontFamily="Ubuntu"
         android:textSize="20dp"
         android:id="@+id/showPhone"/>
-
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:id="@+id/showImage"/>
 </LinearLayout>

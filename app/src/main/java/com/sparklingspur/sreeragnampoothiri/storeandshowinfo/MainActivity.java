@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     final int REQUEST_CAMERA = 1888;
     final int SELECT_FILE = 1213;
     private Bitmap contactImage;
+    private byte imageInByte[];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +47,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+        final ImageView contactImage = (ImageView) findViewById(R.id.ivImage);
         final EditText name = (EditText) findViewById(R.id.storeName);
         final EditText phoneNumber = (EditText) findViewById(R.id.storephoneNumber);
         final Button addBtn = (Button) findViewById(R.id.storeContact);
@@ -82,6 +83,19 @@ public class MainActivity extends Activity {
                 contact.setName(name.getText().toString());
                 contact.setPhoneNumber(phoneNumber.getText().toString());
 
+                //Image View to bitmap
+                ImageView image = (ImageView)findViewById(R.id.ivImage);
+                image.setDrawingCacheEnabled(true);
+                image.buildDrawingCache();
+                Bitmap imageToBitMap = image.getDrawingCache();
+
+                //Bitmap to byte
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                imageToBitMap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                byte[] imageInByteArray = stream.toByteArray();
+
+                contact.setImage(imageInByteArray);
+
                 personAlreadyExists = db.checkContact(contact);
                 if (personAlreadyExists) {
                     Toast toast = Toast.makeText(context, "Person Already Exist", Toast.LENGTH_SHORT);
@@ -89,7 +103,7 @@ public class MainActivity extends Activity {
                 } else {
 
                     //Add to Database
-                    db.addContact(new Contact(name.getText().toString(), phoneNumber.getText().toString()));
+                    db.addContact(new Contact(name.getText().toString(), phoneNumber.getText().toString(), imageInByteArray));
                     Toast toast = Toast.makeText(context, "Added", Toast.LENGTH_SHORT);
                     toast.show();
                 }
@@ -167,7 +181,7 @@ public class MainActivity extends Activity {
                 contactImage = (Bitmap)data.getExtras().get("data");
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 contactImage.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-
+                imageInByte = bytes.toByteArray();
                 File destination = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis() + ".jpg");
                 FileOutputStream fo;
 
